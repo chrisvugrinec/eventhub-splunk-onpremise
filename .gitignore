@@ -1,0 +1,5 @@
+2_splunkvm/provisioning/id_rsa.pub
+3_infra/terraform.**
+3_infra/test.out
+3_infra/.terraform/
+
