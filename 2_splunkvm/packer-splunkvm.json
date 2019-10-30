@@ -1,0 +1,50 @@
+{
+
+  "variables": {
+    "client_id": "{{env `TF_VAR_CLIENT_ID`}}",
+    "client_secret": "{{env `TF_VAR_CLIENT_SECRET`}}",
+    "tenant_id": "{{env `TF_VAR_TENANT_ID`}}",
+    "subscription_id": "{{env `TF_VAR_SUBSCRIPTION_ID`}}",
+    "location": "australiaeast",
+    "vmsize": "Standard_DS3_v2",
+    "image_name": "splunkvm-image",
+    "resource_group": "eh-splunk-demo-image"
+  },
+  "builders": [
+    {
+      "type": "azure-arm",
+
+      "client_id": "{{user `client_id`}}",
+      "client_secret": "{{user `client_secret`}}",
+      "tenant_id": "{{user `tenant_id`}}",
+      "subscription_id": "{{user `subscription_id`}}",
+
+      "managed_image_resource_group_name": "{{user `resource_group`}}",
+      "managed_image_name": "{{user `image_name`}}",
+
+      "os_type": "Linux",
+      "image_publisher": "Canonical",
+      "image_offer": "UbuntuServer",
+      "image_sku": "18.04-LTS",
+
+      "azure_tags": {
+        "name": "eh splunk demo"
+      },
+
+      "location": "{{user `location`}}",
+      "vm_size": "{{user `vmsize`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "provisioning/ansible.sh"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "provisioning/ansible-cfg.yml",
+      "playbook_dir": "provisioning"
+    }
+  ]
+}

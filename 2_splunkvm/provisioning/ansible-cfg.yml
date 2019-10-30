@@ -1,0 +1,48 @@
+---
+- name: run the playbook tasks on the localhost
+  hosts: 127.0.0.1 
+  connection: local
+  remote_user: vagrant
+  become_user: root
+  vars:
+    timezone: Australia/Sydney
+  tasks:
+    - name: Add vagrant user to wheel and docker group
+      user: name=vagrant append=yes state=present createhome=yes
+      become: yes
+    - name: copying azure-cli repo file with owner and permissions
+      copy:
+        src: ./splunk-8.0.0-1357bef0a7f6-linux-2.6-amd64.deb
+        dest: /opt
+        owner: vagrant
+        group: vagrant
+        mode: 0644
+      become: yes
+    - name: Set authorized key for user vagrant
+      authorized_key:
+        user: vagrant
+        state: present
+        key: "{{ lookup('file', './id_rsa.pub') }}"
+      become: yes       
+    - name: Generate /etc/ssh/ RSA host key
+      command : ssh-keygen -q -t rsa -f /home/vagrant/.ssh/id_rsa -C "" -N ""
+      args:
+        creates: /home/vagrant/.ssh/id_rsa
+      become: yes
+
+    - name: Install NTP daemon
+      sudo: true
+      apt: pkg=ntp state=present
+
+    - name: Ensure NTP daemon autostart
+      sudo: true
+      service: name=ntp enabled=yes
+
+    - name: Sync hwclock
+      shell: hwclock -w
+      tags: ntp
+      become: yes
+
+    - name: set timezone 
+      shell: timedatectl set-timezone {{ timezone }}
+      become: yes
